@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 	"math/rand"
+	"os"
+	"os/signal"
 	"time"
 )
 
@@ -84,7 +86,10 @@ func worker(ctx context.Context, timeoutStream <-chan time.Time) chan struct{} {
 }
 
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
 	workerMonitor(ctx, worker)
+	<-ctx.Done()
+	//cleanup some resource if  exists
+	log.Println("Program interrupted")
 }
